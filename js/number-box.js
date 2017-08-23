@@ -53,8 +53,8 @@ $(document).keydown(function (e) {
     gridToBoxes();
     saveInLocalStorage();
 });
-document.getElementById("container-box").addEventListener('touchstart', handleTouchStart, false);
-document.getElementById("container-box").addEventListener('touchmove', handleTouchMove, false);
+document.getElementById("container-box").addEventListener('touchstart', handleTouchStart, {passive:false});
+document.getElementById("container-box").addEventListener('touchmove', handleTouchMove, {passive:false});
 
 var xDown = null;
 var yDown = null;
@@ -65,6 +65,8 @@ function handleTouchStart(evt) {
 };
 
 function handleTouchMove(evt) {
+	evt.preventDefault();
+	moved = false;
     if (isGameOver()) {
         alert("Game Over!\nClick OK to Reset");
         prepareGrid(true);
@@ -139,6 +141,7 @@ $(document).ready(function () {
 function prepareGrid(forceReset) {
     numberBoxes = [];
     if (forceReset || !restoreFromLocalStorage()) {
+		gridHistory = [];
         numberGrid = [];
         let fontSize = 0;
         switch (gridSize) {
@@ -379,10 +382,35 @@ function moveLeft() {
 
 function moveUp() {
 	historyAdd();
-    transposeGrid();
-    moveLeft();
-    transposeGrid();
-	historyUndo();
+	transposeGrid();
+	for (let i = 0; i < gridSize; i++) {
+        let merged = new Array(gridSize).fill(0);
+        for (let j = 0; j < gridSize; j++) {
+            if (numberGrid[i][j] !== 0) {
+                let currJ = j;
+                while (currJ > 0 && numberGrid[i][currJ - 1] === 0) {
+                    currJ--;
+                }
+                if (j !== currJ) {
+                    if (numberGrid[i][j] === numberGrid[i][currJ - 1] && merged[currJ - 1] !== 1) {
+                        numberGrid[i][currJ - 1] *= 2;
+                        numberGrid[i][j] = 0;
+                        merged[currJ - 1] = 1;
+                    } else {
+                        numberGrid[i][currJ] = numberGrid[i][j];
+                        numberGrid[i][j] = 0;
+                    }
+                    moved = true;
+                } else if (numberGrid[i][j] === numberGrid[i][j - 1] && merged[currJ - 1] !== 1) {
+                    numberGrid[i][j - 1] *= 2;
+                    numberGrid[i][j] = 0;
+                    merged[j - 1] = 1;
+                    moved = true;
+                }
+            }
+        }
+    }
+	transposeGrid();
 	if (!moved) {
 		historyUndo();
 	}
@@ -424,10 +452,35 @@ function moveRight() {
 
 function moveDown() {
 	historyAdd();
-    transposeGrid();
-    moveRight();
-    transposeGrid();
-	historyUndo();
+	transposeGrid();
+	for (let i = gridSize - 1; i >= 0; i--) {
+        let merged = new Array(gridSize).fill(0);
+        for (let j = gridSize - 1; j >= 0; j--) {
+            if (numberGrid[i][j] !== 0) {
+                let currJ = j;
+                while (currJ < gridSize - 1 && numberGrid[i][currJ + 1] === 0) {
+                    currJ++;
+                }
+                if (j !== currJ) {
+                    if (numberGrid[i][j] === numberGrid[i][currJ + 1] && merged[currJ + 1] !== 1) {
+                        numberGrid[i][currJ + 1] *= 2;
+                        numberGrid[i][j] = 0;
+                        merged[currJ + 1] = 1;
+                    } else {
+                        numberGrid[i][currJ] = numberGrid[i][j];
+                        numberGrid[i][j] = 0;
+                    }
+                    moved = true;
+                } else if (numberGrid[i][j] === numberGrid[i][j + 1] && merged[currJ + 1] !== 1) {
+                    numberGrid[i][j + 1] *= 2;
+                    numberGrid[i][j] = 0;
+                    merged[j + 1] = 1;
+                    moved = true;
+                }
+            }
+        }
+    }
+	transposeGrid();
 	if (!moved) {
 		historyUndo();
 	}
