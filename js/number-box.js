@@ -23,7 +23,6 @@ let numberBoxes = [];
 let numberGrid = [];
 let gridHistory = [];
 $(document).keydown(function (e) {
-    historyAdd();
     if (isGameOver()) {
         alert("Game Over!\nClick OK to Reset");
         prepareGrid(true);
@@ -49,8 +48,6 @@ $(document).keydown(function (e) {
         }
         if (moved) {
             putNewNumber();
-        } else {
-            historyUndo();
         }
     }
     gridToBoxes();
@@ -68,7 +65,6 @@ function handleTouchStart(evt) {
 };
 
 function handleTouchMove(evt) {
-    historyAdd();
     if (isGameOver()) {
         alert("Game Over!\nClick OK to Reset");
         prepareGrid(true);
@@ -102,8 +98,6 @@ function handleTouchMove(evt) {
 
         if (moved) {
             putNewNumber();
-        } else {
-            historyUndo();
         }
     }
     gridToBoxes();
@@ -136,7 +130,7 @@ $(document).ready(function () {
             prepareGrid(true);
         }
     });
-    $("#undo-btn").click(function () {
+    document.getElementById("undo-btn").addEventListener( "click", function () {
         historyUndo();
         gridToBoxes();
     });
@@ -335,21 +329,22 @@ function historyUndo() {
 
 function saveInLocalStorage() {
     window.localStorage.numberGrid = JSON.stringify(numberGrid);
+	window.localStorage.gridHistory = JSON.stringify(gridHistory);
 }
 
 function restoreFromLocalStorage() {
-    if (window.localStorage.numberGrid) {
+    if (window.localStorage.numberGrid && window.localStorage.gridHistory) {
         console.log(window.localStorage.numberGrid);
-        if (confirm("An old session found\nRestore?")) {
-            numberGrid = JSON.parse(window.localStorage.numberGrid);
-            gridSize = numberGrid.length;
-            return true;
-        }
+		numberGrid = JSON.parse(window.localStorage.numberGrid);
+		gridHistory = JSON.parse(window.localStorage.gridHistory);
+		gridSize = numberGrid.length;
+		return true;
     }
     return false;
 }
 
 function moveLeft() {
+	historyAdd();
     for (let i = 0; i < gridSize; i++) {
         let merged = new Array(gridSize).fill(0);
         for (let j = 0; j < gridSize; j++) {
@@ -377,15 +372,24 @@ function moveLeft() {
             }
         }
     }
+	if (!moved) {
+		historyUndo();
+	}
 }
 
 function moveUp() {
+	historyAdd();
     transposeGrid();
     moveLeft();
     transposeGrid();
+	historyUndo();
+	if (!moved) {
+		historyUndo();
+	}
 }
 
 function moveRight() {
+	historyAdd();
     for (let i = gridSize - 1; i >= 0; i--) {
         let merged = new Array(gridSize).fill(0);
         for (let j = gridSize - 1; j >= 0; j--) {
@@ -413,10 +417,18 @@ function moveRight() {
             }
         }
     }
+	if (!moved) {
+		historyUndo();
+	}
 }
 
 function moveDown() {
+	historyAdd();
     transposeGrid();
     moveRight();
     transposeGrid();
+	historyUndo();
+	if (!moved) {
+		historyUndo();
+	}
 }
