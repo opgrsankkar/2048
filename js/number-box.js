@@ -56,8 +56,8 @@ $(document).keydown(function (e) {
     gridToBoxes();
     saveInLocalStorage();
 });
-document.addEventListener('touchstart', handleTouchStart, false);
-document.addEventListener('touchmove', handleTouchMove, false);
+document.getElementById("container-box").addEventListener('touchstart', handleTouchStart, false);
+document.getElementById("container-box").addEventListener('touchmove', handleTouchMove, false);
 
 var xDown = null;
 var yDown = null;
@@ -66,39 +66,6 @@ function handleTouchStart(evt) {
     xDown = evt.touches[0].clientX;
     yDown = evt.touches[0].clientY;
 };
-
-
-$(document).ready(function () {
-    prepareGrid(false);
-    $("#btn-4").click(function () {
-        if (confirm("This will reset the grid.\nAre you sure you want to reset the grid?")) {
-            gridSize = 4;
-            prepareGrid(true);
-        }
-    });
-    $("#btn-5").click(function () {
-        if (confirm("This will reset the grid.\nAre you sure you want to reset the grid?")) {
-            gridSize = 5;
-            prepareGrid(true);
-        }
-    });
-    $("#btn-6").click(function () {
-        if (confirm("This will reset the grid.\nAre you sure you want to reset the grid?")) {
-            gridSize = 6;
-            prepareGrid(true);
-        }
-    });
-    $("#btn-7").click(function () {
-        if (confirm("This will reset the grid.\nAre you sure you want to reset the grid?")) {
-            gridSize = 7;
-            prepareGrid(true);
-        }
-    });
-    $("#undo-btn").click(function () {
-        historyUndo();
-        gridToBoxes();
-    });
-});
 
 function handleTouchMove(evt) {
     historyAdd();
@@ -142,6 +109,38 @@ function handleTouchMove(evt) {
     gridToBoxes();
     saveInLocalStorage();
 }
+
+$(document).ready(function () {
+    prepareGrid(false);
+    $("#btn-4").click(function () {
+        if (confirm("This will reset the grid.\nAre you sure you want to reset the grid?")) {
+            gridSize = 4;
+            prepareGrid(true);
+        }
+    });
+    $("#btn-5").click(function () {
+        if (confirm("This will reset the grid.\nAre you sure you want to reset the grid?")) {
+            gridSize = 5;
+            prepareGrid(true);
+        }
+    });
+    $("#btn-6").click(function () {
+        if (confirm("This will reset the grid.\nAre you sure you want to reset the grid?")) {
+            gridSize = 6;
+            prepareGrid(true);
+        }
+    });
+    $("#btn-7").click(function () {
+        if (confirm("This will reset the grid.\nAre you sure you want to reset the grid?")) {
+            gridSize = 7;
+            prepareGrid(true);
+        }
+    });
+    $("#undo-btn").click(function () {
+        historyUndo();
+        gridToBoxes();
+    });
+});
 
 function prepareGrid(forceReset) {
     numberBoxes = [];
