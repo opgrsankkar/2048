@@ -2,7 +2,8 @@ const keyLeft = 37;
 const keyUp = 38;
 const keyRight = 39;
 const keyDown = 40;
-
+let key = 0;
+let moved = false;
 let gridSize = 4;
 let numberClasses = [
     "empty",
@@ -27,128 +28,20 @@ $(document).keydown(function (e) {
         alert("Game Over!\nClick OK to Reset");
         prepareGrid(true);
     } else {
-        let key = e.which;
-        let moved = false;
+        key = e.which;
+        moved = false;
         switch (key) {
             case keyLeft:
-                for (let i = 0; i < gridSize; i++) {
-                    let merged = new Array(gridSize).fill(0);
-                    for (let j = 0; j < gridSize; j++) {
-                        if (numberGrid[i][j] !== 0) {
-                            let currJ = j;
-                            while (currJ > 0 && numberGrid[i][currJ - 1] === 0) {
-                                currJ--;
-                            }
-                            if (j !== currJ) {
-                                if (numberGrid[i][j] === numberGrid[i][currJ - 1] && merged[currJ - 1] !== 1) {
-                                    numberGrid[i][currJ - 1] *= 2;
-                                    numberGrid[i][j] = 0;
-                                    merged[currJ - 1] = 1;
-                                } else {
-                                    numberGrid[i][currJ] = numberGrid[i][j];
-                                    numberGrid[i][j] = 0;
-                                }
-                                moved = true;
-                            } else if (numberGrid[i][j] === numberGrid[i][j - 1] && merged[currJ - 1] !== 1) {
-                                numberGrid[i][j - 1] *= 2;
-                                numberGrid[i][j] = 0;
-                                merged[j - 1] = 1;
-                                moved = true;
-                            }
-                        }
-                    }
-                }
+                moveLeft();
                 break;
             case keyUp:
-                transposeGrid();
-                for (let i = 0; i < gridSize; i++) {
-                    let merged = new Array(gridSize).fill(0);
-                    for (let j = 0; j < gridSize; j++) {
-                        if (numberGrid[i][j] !== 0) {
-                            let currJ = j;
-                            while (currJ > 0 && numberGrid[i][currJ - 1] === 0) {
-                                currJ--;
-                            }
-                            if (j !== currJ) {
-                                if (numberGrid[i][j] === numberGrid[i][currJ - 1] && merged[currJ - 1] !== 1) {
-                                    numberGrid[i][currJ - 1] *= 2;
-                                    numberGrid[i][j] = 0;
-                                    merged[currJ - 1] = 1;
-                                } else {
-                                    numberGrid[i][currJ] = numberGrid[i][j];
-                                    numberGrid[i][j] = 0;
-                                }
-                                moved = true;
-                            } else if (numberGrid[i][j] === numberGrid[i][j - 1] && merged[currJ - 1] !== 1) {
-                                numberGrid[i][j - 1] *= 2;
-                                numberGrid[i][j] = 0;
-                                merged[j - 1] = 1;
-                                moved = true;
-                            }
-                        }
-                    }
-                }
-                transposeGrid();
+                moveUp();
                 break;
             case keyRight:
-                for (let i = gridSize - 1; i >= 0; i--) {
-                    let merged = new Array(gridSize).fill(0);
-                    for (let j = gridSize - 1; j >= 0; j--) {
-                        if (numberGrid[i][j] !== 0) {
-                            let currJ = j;
-                            while (currJ < gridSize - 1 && numberGrid[i][currJ + 1] === 0) {
-                                currJ++;
-                            }
-                            if (j !== currJ) {
-                                if (numberGrid[i][j] === numberGrid[i][currJ + 1] && merged[currJ + 1] !== 1) {
-                                    numberGrid[i][currJ + 1] *= 2;
-                                    numberGrid[i][j] = 0;
-                                    merged[currJ + 1] = 1;
-                                } else {
-                                    numberGrid[i][currJ] = numberGrid[i][j];
-                                    numberGrid[i][j] = 0;
-                                }
-                                moved = true;
-                            } else if (numberGrid[i][j] === numberGrid[i][j + 1] && merged[currJ + 1] !== 1) {
-                                numberGrid[i][j + 1] *= 2;
-                                numberGrid[i][j] = 0;
-                                merged[j + 1] = 1;
-                                moved = true;
-                            }
-                        }
-                    }
-                }
+                moveRight();
                 break;
             case keyDown:
-                transposeGrid();
-                for (let i = gridSize - 1; i >= 0; i--) {
-                    let merged = new Array(gridSize).fill(0);
-                    for (let j = gridSize - 1; j >= 0; j--) {
-                        if (numberGrid[i][j] !== 0) {
-                            let currJ = j;
-                            while (currJ < gridSize - 1 && numberGrid[i][currJ + 1] === 0) {
-                                currJ++;
-                            }
-                            if (j !== currJ) {
-                                if (numberGrid[i][j] === numberGrid[i][currJ + 1] && merged[currJ + 1] !== 1) {
-                                    numberGrid[i][currJ + 1] *= 2;
-                                    numberGrid[i][j] = 0;
-                                    merged[currJ + 1] = 1;
-                                } else {
-                                    numberGrid[i][currJ] = numberGrid[i][j];
-                                    numberGrid[i][j] = 0;
-                                }
-                                moved = true;
-                            } else if (numberGrid[i][j] === numberGrid[i][j + 1] && merged[currJ + 1] !== 1) {
-                                numberGrid[i][j + 1] *= 2;
-                                numberGrid[i][j] = 0;
-                                merged[j + 1] = 1;
-                                moved = true;
-                            }
-                        }
-                    }
-                }
-                transposeGrid();
+                moveDown();
                 break;
             default:
                 break;
@@ -163,6 +56,59 @@ $(document).keydown(function (e) {
     gridToBoxes();
     saveInLocalStorage();
 });
+document.addEventListener('touchstart', handleTouchStart, false);
+document.addEventListener('touchmove', handleTouchMove, false);
+
+var xDown = null;
+var yDown = null;
+
+function handleTouchStart(evt) {
+    xDown = evt.touches[0].clientX;
+    yDown = evt.touches[0].clientY;
+};
+
+function handleTouchMove(evt) {
+    historyAdd();
+    if (isGameOver()) {
+        alert("Game Over!\nClick OK to Reset");
+        prepareGrid(true);
+    } else {
+        if (!xDown || !yDown) {
+            return;
+        }
+
+        var xUp = evt.touches[0].clientX;
+        var yUp = evt.touches[0].clientY;
+
+        var xDiff = xDown - xUp;
+        var yDiff = yDown - yUp;
+
+        if (Math.abs(xDiff) > Math.abs(yDiff)) {/*most significant*/
+            if (xDiff > 0) {
+                moveLeft()
+            } else {
+                moveRight()
+            }
+        } else {
+            if (yDiff > 0) {
+                moveUp()
+            } else {
+                moveDown();
+            }
+        }
+        /* reset values */
+        xDown = null;
+        yDown = null;
+
+        if (moved) {
+            putNewNumber();
+        } else {
+            historyUndo();
+        }
+    }
+    gridToBoxes();
+    saveInLocalStorage();
+}
 $(document).ready(function () {
     prepareGrid(false);
     $("#btn-4").click(function () {
@@ -402,3 +348,74 @@ function restoreFromLocalStorage() {
     return false;
 }
 
+function moveLeft() {
+    for (let i = 0; i < gridSize; i++) {
+        let merged = new Array(gridSize).fill(0);
+        for (let j = 0; j < gridSize; j++) {
+            if (numberGrid[i][j] !== 0) {
+                let currJ = j;
+                while (currJ > 0 && numberGrid[i][currJ - 1] === 0) {
+                    currJ--;
+                }
+                if (j !== currJ) {
+                    if (numberGrid[i][j] === numberGrid[i][currJ - 1] && merged[currJ - 1] !== 1) {
+                        numberGrid[i][currJ - 1] *= 2;
+                        numberGrid[i][j] = 0;
+                        merged[currJ - 1] = 1;
+                    } else {
+                        numberGrid[i][currJ] = numberGrid[i][j];
+                        numberGrid[i][j] = 0;
+                    }
+                    moved = true;
+                } else if (numberGrid[i][j] === numberGrid[i][j - 1] && merged[currJ - 1] !== 1) {
+                    numberGrid[i][j - 1] *= 2;
+                    numberGrid[i][j] = 0;
+                    merged[j - 1] = 1;
+                    moved = true;
+                }
+            }
+        }
+    }
+}
+
+function moveUp() {
+    transposeGrid();
+    moveLeft();
+    transposeGrid();
+}
+
+function moveRight() {
+    for (let i = gridSize - 1; i >= 0; i--) {
+        let merged = new Array(gridSize).fill(0);
+        for (let j = gridSize - 1; j >= 0; j--) {
+            if (numberGrid[i][j] !== 0) {
+                let currJ = j;
+                while (currJ < gridSize - 1 && numberGrid[i][currJ + 1] === 0) {
+                    currJ++;
+                }
+                if (j !== currJ) {
+                    if (numberGrid[i][j] === numberGrid[i][currJ + 1] && merged[currJ + 1] !== 1) {
+                        numberGrid[i][currJ + 1] *= 2;
+                        numberGrid[i][j] = 0;
+                        merged[currJ + 1] = 1;
+                    } else {
+                        numberGrid[i][currJ] = numberGrid[i][j];
+                        numberGrid[i][j] = 0;
+                    }
+                    moved = true;
+                } else if (numberGrid[i][j] === numberGrid[i][j + 1] && merged[currJ + 1] !== 1) {
+                    numberGrid[i][j + 1] *= 2;
+                    numberGrid[i][j] = 0;
+                    merged[j + 1] = 1;
+                    moved = true;
+                }
+            }
+        }
+    }
+}
+
+function moveDown() {
+    transposeGrid();
+    moveRight();
+    transposeGrid();
+}
